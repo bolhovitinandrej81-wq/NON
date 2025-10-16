@@ -1,19 +1,20 @@
 #include "modAlphaCipher.h"
+#include <locale>
+#include <codecvt>
+#include <cwctype>
 #include <algorithm>
-#include <stdexcept>
 
 using namespace std;
 
-modAlphaCipher::modAlphaCipher(const string& skey)
+modAlphaCipher::modAlphaCipher(const wstring& skey)
 {
-    // Инициализируем алфавит и маппинг
     for(unsigned i = 0; i < numAlpha.size(); i++) {
         alphaNum[numAlpha[i]] = i;
     }
     key = convert(skey);
 }
 
-string modAlphaCipher::encrypt(const string& open_text)
+wstring modAlphaCipher::encrypt(const wstring& open_text)
 {
     vector<int> work = convert(open_text);
     for(unsigned i = 0; i < work.size(); i++) {
@@ -22,7 +23,7 @@ string modAlphaCipher::encrypt(const string& open_text)
     return convert(work);
 }
 
-string modAlphaCipher::decrypt(const string& cipher_text)
+wstring modAlphaCipher::decrypt(const wstring& cipher_text)
 {
     vector<int> work = convert(cipher_text);
     for(unsigned i = 0; i < work.size(); i++) {
@@ -31,7 +32,7 @@ string modAlphaCipher::decrypt(const string& cipher_text)
     return convert(work);
 }
 
-vector<int> modAlphaCipher::convert(const string& s)
+vector<int> modAlphaCipher::convert(const wstring& s)
 {
     vector<int> result;
     for(auto c : s) {
@@ -40,9 +41,9 @@ vector<int> modAlphaCipher::convert(const string& s)
     return result;
 }
 
-string modAlphaCipher::convert(const vector<int>& v)
+wstring modAlphaCipher::convert(const vector<int>& v)
 {
-    string result;
+    wstring result;
     for(auto i : v) {
         result.push_back(numAlpha[i]);
     }

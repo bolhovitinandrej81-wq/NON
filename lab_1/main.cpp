@@ -1,33 +1,62 @@
 #include "modAlphaCipher.h"
 #include <iostream>
-#include <algorithm>
 #include <locale>
-#include <cctype>
+#include <codecvt>
+#include <algorithm>
 
 using namespace std;
 
-// проверка, чтобы строка состояла только из русских букв
-bool isValid(const string& s)
+bool isValid(const wstring& s)
 {
-    // Временно отключаем проверку для тестирования
+    for(auto c : s) {
+        if(c < L'А' || c > L'Я') {
+            if(c != L'Ё')
+                return false;
+        }
+    }
     return true;
+}
+
+wstring to_upper_rus(const wstring& s) {
+    wstring result = s;
+    for (auto& c : result) {
+        if (c >= L'а' && c <= L'я') {
+            c = c - L'а' + L'А';
+        } 
+        // Ё -> Ё
+        else if (c == L'ё') {
+            c = L'Ё';
+        }
+    }
+    return result;
+}
+
+wstring to_wide(const string& narrow_str) {
+    wstring_convert<codecvt_utf8<wchar_t>> converter;
+    return converter.from_bytes(narrow_str);
+}
+
+string to_narrow(const wstring& wide_str) {
+    wstring_convert<codecvt_utf8<wchar_t>> converter;
+    return converter.to_bytes(wide_str);
 }
 
 int main()
 {
     setlocale(LC_ALL, "ru_RU.UTF-8");
     
-    string key;
-    string text;
+    string key_input;
+    string text_input;
     unsigned op;
     
     cout << "Шифр готов. Введите ключ: ";
-    cin >> key;
+    cin >> key_input;
     
-    transform(key.begin(), key.end(), key.begin(), ::toupper);
+    wstring key = to_wide(key_input);
+    key = to_upper_rus(key);
     
     if(!isValid(key)) {
-        cerr << "Ключ недействителен! Используйте только русские буквы в верхнем регистре.\n";
+        cerr << "Ключ недействителен! Используйте только русские буквы.\n";
         return 1;
     }
     
@@ -42,17 +71,19 @@ int main()
             cout << "Неверная операция\n";
         } else if(op > 0) {
             cout << "Введите текст: ";
-            cin >> text;
+            cin.ignore();
+            getline(cin, text_input);
             
-            transform(text.begin(), text.end(), text.begin(), ::toupper);
+            wstring text = to_wide(text_input);
+            text = to_upper_rus(text);
             
             if(isValid(text)) {
                 if(op == 1) {
-                    string encrypted = cipher.encrypt(text);
-                    cout << "Зашифрованный текст: " << encrypted << endl;
+                    wstring encrypted = cipher.encrypt(text);
+                    cout << "Зашифрованный текст: " << to_narrow(encrypted) << endl;
                 } else {
-                    string decrypted = cipher.decrypt(text);
-                    cout << "Расшифрованный текст: " << decrypted << endl;
+                    wstring decrypted = cipher.decrypt(text);
+                    cout << "Расшифрованный текст: " << to_narrow(decrypted) << endl;
                 }
             } else {
                 cout << "Операция отменена: неверный текст. Используйте только русские буквы.\n";
