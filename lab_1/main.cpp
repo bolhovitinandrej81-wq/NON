@@ -9,6 +9,10 @@ using namespace std;
 bool isValid(const wstring& s)
 {
     for(auto c : s) {
+        // Разрешаем пробелы в дополнение к русским буквам
+        if(c == L' ') {
+            continue;
+        }
         if(c < L'А' || c > L'Я') {
             if(c != L'Ё')
                 return false;
@@ -27,6 +31,7 @@ wstring to_upper_rus(const wstring& s) {
         else if (c == L'ё') {
             c = L'Ё';
         }
+        // пробелы остаются как есть
     }
     return result;
 }
@@ -50,12 +55,21 @@ int main()
     unsigned op;
     
     cout << "Шифр готов. Введите ключ: ";
-    cin >> key_input;
+    getline(cin, key_input); // используем getline вместо cin для ключа
     
     wstring key = to_wide(key_input);
     key = to_upper_rus(key);
     
-    if(!isValid(key)) {
+    // Удаляем пробелы из ключа (в ключе пробелы недопустимы)
+    wstring key_no_spaces;
+    for(auto c : key) {
+        if(c != L' ') {
+            key_no_spaces += c;
+        }
+    }
+    key = key_no_spaces;
+    
+    if(!isValid(key) || key.empty()) {
         cerr << "Ключ недействителен! Используйте только русские буквы.\n";
         return 1;
     }
@@ -86,7 +100,7 @@ int main()
                     cout << "Расшифрованный текст: " << to_narrow(decrypted) << endl;
                 }
             } else {
-                cout << "Операция отменена: неверный текст. Используйте только русские буквы.\n";
+                cout << "Операция отменена: неверный текст. Используйте только русские буквы и пробелы.\n";
             }
         }
     } while(op != 0);

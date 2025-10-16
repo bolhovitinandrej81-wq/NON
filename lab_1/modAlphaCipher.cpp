@@ -18,7 +18,10 @@ wstring modAlphaCipher::encrypt(const wstring& open_text)
 {
     vector<int> work = convert(open_text);
     for(unsigned i = 0; i < work.size(); i++) {
-        work[i] = (work[i] + key[i % key.size()]) % alphaNum.size();
+        // Пропускаем пробелы (они имеют значение -1)
+        if(work[i] != -1) {
+            work[i] = (work[i] + key[i % key.size()]) % alphaNum.size();
+        }
     }
     return convert(work);
 }
@@ -27,7 +30,10 @@ wstring modAlphaCipher::decrypt(const wstring& cipher_text)
 {
     vector<int> work = convert(cipher_text);
     for(unsigned i = 0; i < work.size(); i++) {
-        work[i] = (work[i] + alphaNum.size() - key[i % key.size()]) % alphaNum.size();
+        // Пропускаем пробелы (они имеют значение -1)
+        if(work[i] != -1) {
+            work[i] = (work[i] + alphaNum.size() - key[i % key.size()]) % alphaNum.size();
+        }
     }
     return convert(work);
 }
@@ -36,7 +42,12 @@ vector<int> modAlphaCipher::convert(const wstring& s)
 {
     vector<int> result;
     for(auto c : s) {
-        result.push_back(alphaNum[c]);
+        if(c == L' ') {
+            // Пробелы помечаем как -1
+            result.push_back(-1);
+        } else {
+            result.push_back(alphaNum[c]);
+        }
     }
     return result;
 }
@@ -45,7 +56,12 @@ wstring modAlphaCipher::convert(const vector<int>& v)
 {
     wstring result;
     for(auto i : v) {
-        result.push_back(numAlpha[i]);
+        if(i == -1) {
+            // Восстанавливаем пробелы
+            result.push_back(L' ');
+        } else {
+            result.push_back(numAlpha[i]);
+        }
     }
     return result;
 }
