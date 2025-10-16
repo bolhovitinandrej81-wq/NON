@@ -21,6 +21,18 @@ bool isValid(const wstring& s)
     return true;
 }
 
+bool isValidKey(const wstring& s)
+{
+    for(auto c : s) {
+        // Для ключа пробелы не разрешаем
+        if(c < L'А' || c > L'Я') {
+            if(c != L'Ё')
+                return false;
+        }
+    }
+    return true;
+}
+
 wstring to_upper_rus(const wstring& s) {
     wstring result = s;
     for (auto& c : result) {
@@ -55,7 +67,7 @@ int main()
     unsigned op;
     
     cout << "Шифр готов. Введите ключ: ";
-    getline(cin, key_input); // используем getline вместо cin для ключа
+    getline(cin, key_input);
     
     wstring key = to_wide(key_input);
     key = to_upper_rus(key);
@@ -69,7 +81,7 @@ int main()
     }
     key = key_no_spaces;
     
-    if(!isValid(key) || key.empty()) {
+    if(!isValidKey(key) || key.empty()) {
         cerr << "Ключ недействителен! Используйте только русские буквы.\n";
         return 1;
     }

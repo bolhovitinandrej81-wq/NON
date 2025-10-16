@@ -17,10 +17,12 @@ modAlphaCipher::modAlphaCipher(const wstring& skey)
 wstring modAlphaCipher::encrypt(const wstring& open_text)
 {
     vector<int> work = convert(open_text);
+    int key_index = 0; // отдельный индекс для ключа
+    
     for(unsigned i = 0; i < work.size(); i++) {
-        // Пропускаем пробелы (они имеют значение -1)
-        if(work[i] != -1) {
-            work[i] = (work[i] + key[i % key.size()]) % alphaNum.size();
+        if(work[i] != -1) { // если не пробел
+            work[i] = (work[i] + key[key_index % key.size()]) % alphaNum.size();
+            key_index++; // увеличиваем индекс ключа только когда шифруем букву
         }
     }
     return convert(work);
@@ -29,10 +31,12 @@ wstring modAlphaCipher::encrypt(const wstring& open_text)
 wstring modAlphaCipher::decrypt(const wstring& cipher_text)
 {
     vector<int> work = convert(cipher_text);
+    int key_index = 0; // отдельный индекс для ключа
+    
     for(unsigned i = 0; i < work.size(); i++) {
-        // Пропускаем пробелы (они имеют значение -1)
-        if(work[i] != -1) {
-            work[i] = (work[i] + alphaNum.size() - key[i % key.size()]) % alphaNum.size();
+        if(work[i] != -1) { // если не пробел
+            work[i] = (work[i] + alphaNum.size() - key[key_index % key.size()]) % alphaNum.size();
+            key_index++; // увеличиваем индекс ключа только когда расшифровываем букву
         }
     }
     return convert(work);
