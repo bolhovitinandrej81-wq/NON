@@ -9,11 +9,14 @@ TableRouteCipher::TableRouteCipher(int skey) {
 }
 
 string TableRouteCipher::encrypt(string& text) {
-    // Удаляем пробелы из текста для шифрования
+    // Сохраняем позиции пробелов
+    vector<int> space_positions;
     string clean_text;
-    for (char c : text) {
-        if (c != ' ') {
-            clean_text += c;
+    for (int i = 0; i < text.length(); i++) {
+        if (text[i] == ' ') {
+            space_positions.push_back(i);
+        } else {
+            clean_text += text[i];
         }
     }
     

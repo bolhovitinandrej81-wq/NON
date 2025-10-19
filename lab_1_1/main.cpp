@@ -1,8 +1,18 @@
 #include <iostream>
 #include <string>
+#include <cctype>
 #include "TableRouteCipher.h"
 
 using namespace std;
+
+bool isValidText(string &text) {
+    for (char c : text) {
+        if (!isalpha(c) && c != ' ') {
+            return false;
+        }
+    }
+    return true;
+}
 
 bool isValid(const int k, string &text) {
     if (k <= 0) {
@@ -13,6 +23,10 @@ bool isValid(const int k, string &text) {
         cout << "Текст не может быть пустым\n";
         return false;
     }
+    if (!isValidText(text)) {
+        cout << "Текст содержит недопустимые символы\n";
+        return false;
+    }
     return true;
 }
 
@@ -20,6 +34,11 @@ int main() {
     string text;
     int key;
     unsigned vibor;
+    
+    // Выводим информацию о поддерживаемых символах в самом начале
+    cout << "=== Шифратор табличным маршрутным шифром ===\n";
+    cout << "Поддерживаются только английские буквы и пробелы\n";
+    cout << "=============================================\n\n";
     
     cout << "Введите текст: ";
     getline(cin, text);
@@ -35,6 +54,7 @@ int main() {
     cout << "Ключ загружен\n";
     TableRouteCipher shifr(key);
     
+    string original_text = text; // Сохраняем оригинальный текст с пробелами
     string current_text = text;
     
     do {
@@ -49,7 +69,24 @@ int main() {
                 cout << "Зашифрованный текст: " << current_text << endl;
             } else {
                 current_text = shifr.decrypt(current_text);
-                cout << "Расшифрованный текст: " << current_text << endl;
+                
+                // Восстанавливаем пробелы из оригинального текста
+                string result_with_spaces = current_text;
+                string clean_decrypted = current_text;
+                
+                // Вставляем пробелы на те же позиции, где они были в оригинале
+                for (int i = 0, decr_index = 0; i < original_text.length(); i++) {
+                    if (original_text[i] == ' ') {
+                        if (decr_index < clean_decrypted.length()) {
+                            result_with_spaces.insert(result_with_spaces.find(clean_decrypted[decr_index]), 1, ' ');
+                        }
+                    } else {
+                        decr_index++;
+                    }
+                }
+                
+                cout << "Расшифрованный текст: " << result_with_spaces << endl;
+                current_text = clean_decrypted; // Продолжаем работать с текстом без пробелов
             }
         }
     } while (vibor != 0);
