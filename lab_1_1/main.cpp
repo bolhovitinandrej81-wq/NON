@@ -74,11 +74,11 @@ int main() {
                 string result_with_spaces;
                 int decr_index = 0;
                 
-                for (int i = 0; i < original_text.length(); i++) {
+                for (size_t i = 0; i < original_text.length(); i++) {
                     if (original_text[i] == ' ') {
                         result_with_spaces += ' ';
                     } else {
-                        if (decr_index < current_text.length()) {
+                        if (static_cast<size_t>(decr_index) < current_text.length()) {
                             result_with_spaces += current_text[decr_index++];
                         }
                     }

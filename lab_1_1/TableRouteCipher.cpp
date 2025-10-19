@@ -12,7 +12,7 @@ string TableRouteCipher::encrypt(string& text) {
     // Сохраняем позиции пробелов
     vector<int> space_positions;
     string clean_text;
-    for (int i = 0; i < text.length(); i++) {
+    for (size_t i = 0; i < text.length(); i++) {
         if (text[i] == ' ') {
             space_positions.push_back(i);
         } else {
