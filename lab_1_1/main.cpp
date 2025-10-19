@@ -22,7 +22,8 @@ int main() {
     unsigned vibor;
     
     cout << "Введите текст: ";
-    cin >> text;
+    getline(cin, text);
+    
     cout << "Введите кол-во столбцов: ";
     cin >> key;
     

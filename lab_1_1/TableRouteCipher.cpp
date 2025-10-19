@@ -9,35 +9,35 @@ TableRouteCipher::TableRouteCipher(int skey) {
 }
 
 string TableRouteCipher::encrypt(string& text) {
-    int length = text.length();
+    // Удаляем пробелы из текста для шифрования
+    string clean_text;
+    for (char c : text) {
+        if (c != ' ') {
+            clean_text += c;
+        }
+    }
+    
+    int length = clean_text.length();
     int rows = (length + key - 1) / key;
     
+    // Создаем таблицу и заполняем по строкам
     vector<vector<char>> table(rows, vector<char>(key, ' '));
-    
-    // Заполняем по строкам
     int index = 0;
+    
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < key; j++) {
             if (index < length) {
-                table[i][j] = text[index++];
+                table[i][j] = clean_text[index++];
             }
         }
     }
     
-    // Читаем змейкой: четные столбцы сверху вниз, нечетные снизу вверх
+    // Читаем по столбцам СЛЕВА НАПРАВО
     string result;
     for (int j = 0; j < key; j++) {
-        if (j % 2 == 0) { // Четные столбцы
-            for (int i = 0; i < rows; i++) {
-                if (table[i][j] != ' ') {
-                    result += table[i][j];
-                }
-            }
-        } else { // Нечетные столбцы
-            for (int i = rows - 1; i >= 0; i--) {
-                if (table[i][j] != ' ') {
-                    result += table[i][j];
-                }
+        for (int i = 0; i < rows; i++) {
+            if (table[i][j] != ' ') {
+                result += table[i][j];
             }
         }
     }
@@ -51,25 +51,27 @@ string TableRouteCipher::decrypt(string& text) {
     
     vector<vector<char>> table(rows, vector<char>(key, ' '));
     
-    // Заполняем змейкой
-    int index = 0;
+    // Определяем количество символов в каждом столбце
+    vector<int> col_counts(key, rows);
+    int total_cells = rows * key;
+    int empty_cells = total_cells - length;
+    
+    // Корректируем для последних столбцов (они могут быть короче)
+    for (int j = key - 1; j >= key - empty_cells; j--) {
+        col_counts[j] = rows - 1;
+    }
+    
+    // Заполняем таблицу по столбцам
+    int text_index = 0;
     for (int j = 0; j < key; j++) {
-        if (j % 2 == 0) {
-            for (int i = 0; i < rows; i++) {
-                if (index < length) {
-                    table[i][j] = text[index++];
-                }
-            }
-        } else {
-            for (int i = rows - 1; i >= 0; i--) {
-                if (index < length) {
-                    table[i][j] = text[index++];
-                }
+        for (int i = 0; i < col_counts[j]; i++) {
+            if (text_index < length) {
+                table[i][j] = text[text_index++];
             }
         }
     }
     
-    // Читаем по строкам
+    // Читаем по строкам для получения исходного текста
     string result;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < key; j++) {
