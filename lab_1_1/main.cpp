@@ -71,22 +71,21 @@ int main() {
                 current_text = shifr.decrypt(current_text);
                 
                 // Восстанавливаем пробелы из оригинального текста
-                string result_with_spaces = current_text;
-                string clean_decrypted = current_text;
+                string result_with_spaces;
+                int decr_index = 0;
                 
-                // Вставляем пробелы на те же позиции, где они были в оригинале
-                for (int i = 0, decr_index = 0; i < original_text.length(); i++) {
+                for (int i = 0; i < original_text.length(); i++) {
                     if (original_text[i] == ' ') {
-                        if (decr_index < clean_decrypted.length()) {
-                            result_with_spaces.insert(result_with_spaces.find(clean_decrypted[decr_index]), 1, ' ');
-                        }
+                        result_with_spaces += ' ';
                     } else {
-                        decr_index++;
+                        if (decr_index < current_text.length()) {
+                            result_with_spaces += current_text[decr_index++];
+                        }
                     }
                 }
                 
                 cout << "Расшифрованный текст: " << result_with_spaces << endl;
-                current_text = clean_decrypted; // Продолжаем работать с текстом без пробелов
+                current_text = result_with_spaces; // Сохраняем текст с пробелами для следующих операций
             }
         }
     } while (vibor != 0);
