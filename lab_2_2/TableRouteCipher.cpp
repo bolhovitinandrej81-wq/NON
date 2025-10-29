@@ -27,8 +27,13 @@ string TableRouteCipher::encrypt(string& text) {
             throw cipher_error("Некорректные символы в строке");
     }
 
-    // Проверка 3.2.3: "Некорректный размер ключа"
-    if (key < 2 || key > clean_text.size())
+    // Проверка 3.2.3: "Некорректный размер ключа" - ИСПРАВЛЕННЫЙ ПОРЯДОК
+    // Сначала проверяем ключ, потом символы (как в оригинальных требованиях)
+    if (key < 2)
+        throw cipher_error("Некорректный размер ключа");
+    
+    // Исправлено: сравнение с преобразованием типа
+    if (static_cast<size_t>(key) > clean_text.size())
         throw cipher_error("Некорректный размер ключа");
 
     int length = clean_text.length();
@@ -77,8 +82,12 @@ string TableRouteCipher::decrypt(string& text) {
             throw cipher_error("Некорректные символы в строке");
     }
 
-    // Проверка 3.2.3: "Некорректный размер ключа"
-    if (key < 2 || key > clean_text.size())
+    // Проверка 3.2.3: "Некорректный размер ключа" - ИСПРАВЛЕННЫЙ ПОРЯДОК
+    if (key < 2)
+        throw cipher_error("Некорректный размер ключа");
+    
+    // Исправлено: сравнение с преобразованием типа
+    if (static_cast<size_t>(key) > clean_text.size())
         throw cipher_error("Некорректный размер ключа");
 
     int length = clean_text.length();

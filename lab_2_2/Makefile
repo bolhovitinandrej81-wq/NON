@@ -2,62 +2,65 @@
 CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++11 -g
 TARGET = crypto_system
-
-# Исходные файлы
 SOURCES = main.cpp TableRouteCipher.cpp
-HEADERS = TableRouteCipher.h
 OBJECTS = $(SOURCES:.cpp=.o)
+HEADERS = TableRouteCipher.h
 
 # Основная цель
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
 
 # Компиляция объектных файлов
-main.o: main.cpp TableRouteCipher.h
+main.o: main.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
-TableRouteCipher.o: TableRouteCipher.cpp TableRouteCipher.h
+TableRouteCipher.o: TableRouteCipher.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c TableRouteCipher.cpp
+
+# Тестовые цели
+test: $(TARGET)
+	@echo "=== ТЕСТ 1: Пустой текст ==="
+	@echo "" | ./$(TARGET) || true
+	@echo ""
+	
+	@echo "=== ТЕСТ 2: Некорректные символы (цифры) ==="
+	@echo -e "hello123\n3\n1" | ./$(TARGET) || true
+	@echo ""
+	
+	@echo "=== ТЕСТ 3: Некорректные символы (русские) ==="
+	@echo -e "ПРИВЕТ\n3\n1" | ./$(TARGET) || true
+	@echo ""
+	
+	@echo "=== ТЕСТ 4: Ключ слишком маленький ==="
+	@echo -e "hello\n1\n1" | ./$(TARGET) || true
+	@echo ""
+	
+	@echo "=== ТЕСТ 5: Ключ слишком большой ==="
+	@echo -e "hi\n5\n1" | ./$(TARGET) || true
+	@echo ""
+	
+	@echo "=== ТЕСТ 6: Корректное шифрование ==="
+	@echo -e "hello world\n4\n1\n2\n0" | ./$(TARGET) || true
+	@echo ""
+	
+	@echo "=== ТЕСТ 7: Длинный текст ==="
+	@echo -e "ALL ROBOTS HAVE MEMORY AND ARE\n11\n1\n2\n0" | ./$(TARGET) || true
+
+# Быстрый тест (только компиляция)
+quick: $(TARGET)
+	@echo "Программа успешно скомпилирована!"
 
 # Очистка
 clean:
 	rm -f $(TARGET) $(OBJECTS)
 
-# Перекомпиляция
-rebuild: clean $(TARGET)
+# Показать помощь
+help:
+	@echo "Доступные команды:"
+	@echo "  make           - компиляция программы"
+	@echo "  make test      - запуск всех тестов"
+	@echo "  make quick     - быстрая проверка компиляции"
+	@echo "  make clean     - очистка скомпилированных файлов"
+	@echo "  make help      - показать эту справку"
 
-# Запуск программы
-run: $(TARGET)
-	./$(TARGET)
-
-# Тестирование исключений
-test: $(TARGET)
-	@echo "=== Тестирование исключений ==="
-	@echo "1. Тест пустого текста после пробелов:"
-	@echo "    Ввод: текст='    ', ключ=3"
-	@echo "    Ожидается: 'Отсутствует открытый текст'"
-	@echo ""
-	@echo "2. Тест некорректных символов:"
-	@echo "    Ввод: текст='hello123', ключ=3"
-	@echo "    Ожидается: 'Некорректные символы в строке'"
-	@echo ""
-	@echo "3. Тест маленького ключа:"
-	@echo "    Ввод: текст='hello', ключ=1"
-	@echo "    Ожидается: 'Некорректный размер ключа'"
-	@echo ""
-	@echo "4. Тест большого ключа:"
-	@echo "    Ввод: текст='hi', ключ=5"
-	@echo "    Ожидается: 'Некорректный размер ключа'"
-	@echo ""
-	@echo "5. Тест корректной работы:"
-	@echo "    Ввод: текст='Hello World', ключ=3"
-	@echo "    Ожидается: Успешное шифрование/дешифрование"
-
-# Отладочная информация
-debug:
-	@echo "Sources: $(SOURCES)"
-	@echo "Headers: $(HEADERS)"
-	@echo "Objects: $(OBJECTS)"
-	@echo "Target: $(TARGET)"
-
-.PHONY: clean rebuild run test debug
+.PHONY: all test quick clean help
