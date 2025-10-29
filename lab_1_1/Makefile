@@ -1,23 +1,23 @@
 # Компилятор и флаги
 CXX = g++
 CXXFLAGS = -Wall -Wextra -pedantic -std=c++11
-TARGET = crypto_system
 
-# Исходные файлы
+# Имена файлов
 SOURCES = main.cpp TableRouteCipher.cpp
-OBJECTS = $(SOURCES:.cpp=.o)
 HEADERS = TableRouteCipher.h
+OBJECTS = $(SOURCES:.cpp=.o)
+TARGET = crypto_system
 
 # Основная цель
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
 
 # Компиляция main.cpp
-main.o: main.cpp $(HEADERS)
+main.o: main.cpp TableRouteCipher.h
 	$(CXX) $(CXXFLAGS) -c main.cpp
 
 # Компиляция TableRouteCipher.cpp
-TableRouteCipher.o: TableRouteCipher.cpp $(HEADERS)
+TableRouteCipher.o: TableRouteCipher.cpp TableRouteCipher.h
 	$(CXX) $(CXXFLAGS) -c TableRouteCipher.cpp
 
 # Очистка
@@ -27,20 +27,12 @@ clean:
 # Пересборка
 rebuild: clean $(TARGET)
 
-# Установка (если нужно)
-install: $(TARGET)
-	@echo "Программа собрана: ./$(TARGET)"
+# Запуск программы
+run: $(TARGET)
+	./$(TARGET)
 
-# Помощь
-help:
-	@echo "Доступные цели:"
-	@echo "  all       - собрать программу (по умолчанию)"
-	@echo "  clean     - удалить объектные файлы и программу"
-	@echo "  rebuild   - пересобрать программу"
-	@echo "  install   - собрать программу (аналогично all)"
-	@echo "  help      - показать эту справку"
+# Отладочная сборка
+debug: CXXFLAGS += -g
+debug: rebuild
 
-# Псевдонимы
-all: $(TARGET)
-
-.PHONY: all clean rebuild install help
+.PHONY: clean rebuild run debug
