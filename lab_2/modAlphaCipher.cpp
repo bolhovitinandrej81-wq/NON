@@ -12,7 +12,7 @@ modAlphaCipher::modAlphaCipher(const wstring& skey)
     if(skey.empty())
         throw cipher_error("Пустой ключ");
 
-    // 3.1.2 Неправильный ключ - проверяем на русские буквы
+    // 3.1.2 Неправильный ключ - проверяем на русские буквы (без пробелов)
     for(auto c : skey) {
         // Разрешаем только русские буквы (А-Я и Ё)
         if((c < L'А' || c > L'Я') && c != L'Ё') {
@@ -31,13 +31,6 @@ wstring modAlphaCipher::encrypt(const wstring& open_text)
     // 3.1.3 Отсутствие текста
     if(open_text.empty())
         throw cipher_error("Отсутствует текст");
-
-    // Проверяем, что открытый текст состоит только из русских букв
-    for(auto c : open_text) {
-        if((c < L'А' || c > L'Я') && c != L'Ё') {
-            throw cipher_error("Неправильный открытый текст: содержит недопустимые символы");
-        }
-    }
 
     vector<int> work = convert(open_text);
     

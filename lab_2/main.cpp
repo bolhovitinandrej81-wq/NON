@@ -6,8 +6,30 @@
 
 using namespace std;
 
-// Функция для проверки, содержит ли строка только русские буквы
-bool contains_only_russian(const wstring& s) {
+// Функция для удаления пробелов из текста
+wstring remove_spaces(const wstring& s) {
+    wstring result;
+    for(auto c : s) {
+        if(c != L' ') {
+            result += c;
+        }
+    }
+    return result;
+}
+
+// Функция для проверки, содержит ли строка только русские буквы и пробелы
+bool is_valid_russian_text(const wstring& s) {
+    for(auto c : s) {
+        if(c == L' ') continue; // Пропускаем пробелы
+        if((c < L'А' || c > L'Я') && c != L'Ё') {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Функция для проверки ключа (только русские буквы, без пробелов)
+bool is_valid_key(const wstring& s) {
     for(auto c : s) {
         if((c < L'А' || c > L'Я') && c != L'Ё') {
             return false;
@@ -57,8 +79,16 @@ int main()
     wstring key = to_wide(key_input);
     key = to_upper_rus(key);
     
+    // Удаляем пробелы из ключа
+    wstring clean_key = remove_spaces(key);
+    
     try {
-        modAlphaCipher cipher(key);
+        // Проверяем ключ перед созданием шифра
+        if(!is_valid_key(clean_key)) {
+            throw cipher_error("Неправильный ключ: содержит недопустимые символы");
+        }
+        
+        modAlphaCipher cipher(clean_key);
         cout << "Ключ загружен\n";
         
         do {
@@ -82,10 +112,18 @@ int main()
                 
                 try {
                     if(op == 1) {
-                        wstring encrypted = cipher.encrypt(text);
+                        // Для шифрования: проверяем текст и удаляем пробелы
+                        if(!is_valid_russian_text(text)) {
+                            cout << "Ошибка: Текст содержит недопустимые символы\n";
+                            continue;
+                        }
+                        wstring text_no_spaces = remove_spaces(text);
+                        wstring encrypted = cipher.encrypt(text_no_spaces);
                         cout << "Зашифрованный текст: " << to_narrow(encrypted) << endl;
                     } else {
-                        wstring decrypted = cipher.decrypt(text);
+                        // Для расшифрования: удаляем пробелы и передаем в decrypt
+                        wstring text_no_spaces = remove_spaces(text);
+                        wstring decrypted = cipher.decrypt(text_no_spaces);
                         cout << "Расшифрованный текст: " << to_narrow(decrypted) << endl;
                     }
                 } catch (const cipher_error& e) {
