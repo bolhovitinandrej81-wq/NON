@@ -1,12 +1,16 @@
 #pragma once
 #include <string>
-#include <stdexcept>
 
 using namespace std;
 
-class cipher_error : public invalid_argument {
+class cipher_error : public std::exception {
+private:
+    string message;
 public:
-    explicit cipher_error(const string& what_arg) : invalid_argument(what_arg) {}
+    explicit cipher_error(const string& msg) : message(msg) {}
+    const char* what() const noexcept override {
+        return message.c_str();
+    }
 };
 
 class TableRouteCipher {

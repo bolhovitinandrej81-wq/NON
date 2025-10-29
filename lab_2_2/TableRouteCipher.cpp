@@ -10,7 +10,7 @@ TableRouteCipher::TableRouteCipher(int skey) {
 }
 
 string TableRouteCipher::encrypt(string& text) {
-    // 3.2.1 "Отсутствует открытый текст" - проверка после удаления пробелов
+    // Проверка 3.2.1: "Отсутствует открытый текст"
     string clean_text;
     for (char c : text) {
         if (c != ' ') {
@@ -21,29 +21,17 @@ string TableRouteCipher::encrypt(string& text) {
     if (clean_text.empty())
         throw cipher_error("Отсутствует открытый текст");
 
-    // 3.2.2 "Некорректные символы в строке"
+    // Проверка 3.2.2: "Некорректные символы в строке"
     for (char c : clean_text) {
-        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
             throw cipher_error("Некорректные символы в строке");
-        }
     }
 
-    // 3.2.3 "Некорректный размер ключа"
-    if (key < 2 || static_cast<size_t>(key) > clean_text.size())
+    // Проверка 3.2.3: "Некорректный размер ключа"
+    if (key < 2 || key > clean_text.size())
         throw cipher_error("Некорректный размер ключа");
 
-    // Сохраняем позиции пробелов из оригинального текста
-    vector<int> space_positions;
-    string processing_text;
-    for (size_t i = 0; i < text.length(); i++) {
-        if (text[i] == ' ') {
-            space_positions.push_back(i);
-        } else {
-            processing_text += text[i];
-        }
-    }
-    
-    int length = processing_text.length();
+    int length = clean_text.length();
     int rows = (length + key - 1) / key;
     
     // Создаем таблицу и заполняем по строкам
@@ -53,7 +41,7 @@ string TableRouteCipher::encrypt(string& text) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < key; j++) {
             if (index < length) {
-                table[i][j] = processing_text[index++];
+                table[i][j] = clean_text[index++];
             }
         }
     }
@@ -72,7 +60,7 @@ string TableRouteCipher::encrypt(string& text) {
 }
 
 string TableRouteCipher::decrypt(string& text) {
-    // 3.2.1 "Отсутствует открытый текст" - проверка после удаления пробелов
+    // Проверка 3.2.1: "Отсутствует открытый текст"
     string clean_text;
     for (char c : text) {
         if (c != ' ') {
@@ -83,15 +71,14 @@ string TableRouteCipher::decrypt(string& text) {
     if (clean_text.empty())
         throw cipher_error("Отсутствует открытый текст");
 
-    // 3.2.2 "Некорректные символы в строке"
+    // Проверка 3.2.2: "Некорректные символы в строке"
     for (char c : clean_text) {
-        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
             throw cipher_error("Некорректные символы в строке");
-        }
     }
 
-    // 3.2.3 "Некорректный размер ключа" - для дешифровки проверяем только минимальное значение
-    if (key < 2)
+    // Проверка 3.2.3: "Некорректный размер ключа"
+    if (key < 2 || key > clean_text.size())
         throw cipher_error("Некорректный размер ключа");
 
     int length = clean_text.length();
