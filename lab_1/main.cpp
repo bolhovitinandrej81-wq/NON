@@ -58,6 +58,17 @@ string to_narrow(const wstring& wide_str) {
     return converter.to_bytes(wide_str);
 }
 
+// Функция для удаления пробелов из текста
+wstring remove_spaces(const wstring& s) {
+    wstring result;
+    for(auto c : s) {
+        if(c != L' ') {
+            result += c;
+        }
+    }
+    return result;
+}
+
 int main()
 {
     setlocale(LC_ALL, "ru_RU.UTF-8");
@@ -105,10 +116,14 @@ int main()
             
             if(isValid(text)) {
                 if(op == 1) {
-                    wstring encrypted = cipher.encrypt(text);
+                    // Удаляем пробелы перед шифрованием
+                    wstring text_no_spaces = remove_spaces(text);
+                    wstring encrypted = cipher.encrypt(text_no_spaces);
                     cout << "Зашифрованный текст: " << to_narrow(encrypted) << endl;
                 } else {
-                    wstring decrypted = cipher.decrypt(text);
+                    // Удаляем пробелы перед расшифрованием
+                    wstring text_no_spaces = remove_spaces(text);
+                    wstring decrypted = cipher.decrypt(text_no_spaces);
                     cout << "Расшифрованный текст: " << to_narrow(decrypted) << endl;
                 }
             } else {

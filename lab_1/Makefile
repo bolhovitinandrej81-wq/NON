@@ -1,6 +1,6 @@
 # Компилятор и флаги
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -O2
+CXXFLAGS = -Wall -Wextra -std=c++11 -O2
 LDFLAGS = 
 
 # Целевые файлы
@@ -39,8 +39,9 @@ run: $(TARGET)
 debug: CXXFLAGS += -g -DDEBUG
 debug: rebuild
 
-# Проверка синтаксиса
-check:
-	$(CXX) $(CXXFLAGS) -fsyntax-only $(SOURCES)
+# Установка (если нужно)
+install: $(TARGET)
+	cp $(TARGET) /usr/local/bin/
 
-.PHONY: all clean rebuild run debug check
+# Список целей
+.PHONY: all clean rebuild run debug install

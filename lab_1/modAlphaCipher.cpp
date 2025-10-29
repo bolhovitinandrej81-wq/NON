@@ -17,13 +17,9 @@ modAlphaCipher::modAlphaCipher(const wstring& skey)
 wstring modAlphaCipher::encrypt(const wstring& open_text)
 {
     vector<int> work = convert(open_text);
-    int key_index = 0; // отдельный индекс для ключа
     
     for(unsigned i = 0; i < work.size(); i++) {
-        if(work[i] != -1) { // если не пробел
-            work[i] = (work[i] + key[key_index % key.size()]) % alphaNum.size();
-            key_index++; // увеличиваем индекс ключа только когда шифруем букву
-        }
+        work[i] = (work[i] + key[i % key.size()]) % alphaNum.size();
     }
     return convert(work);
 }
@@ -31,13 +27,9 @@ wstring modAlphaCipher::encrypt(const wstring& open_text)
 wstring modAlphaCipher::decrypt(const wstring& cipher_text)
 {
     vector<int> work = convert(cipher_text);
-    int key_index = 0; // отдельный индекс для ключа
     
     for(unsigned i = 0; i < work.size(); i++) {
-        if(work[i] != -1) { // если не пробел
-            work[i] = (work[i] + alphaNum.size() - key[key_index % key.size()]) % alphaNum.size();
-            key_index++; // увеличиваем индекс ключа только когда расшифровываем букву
-        }
+        work[i] = (work[i] + alphaNum.size() - key[i % key.size()]) % alphaNum.size();
     }
     return convert(work);
 }
@@ -46,12 +38,8 @@ vector<int> modAlphaCipher::convert(const wstring& s)
 {
     vector<int> result;
     for(auto c : s) {
-        if(c == L' ') {
-            // Пробелы помечаем как -1
-            result.push_back(-1);
-        } else {
-            result.push_back(alphaNum[c]);
-        }
+        // Пробелы больше не обрабатываем, так как они удаляются до шифрования
+        result.push_back(alphaNum[c]);
     }
     return result;
 }
@@ -60,12 +48,8 @@ wstring modAlphaCipher::convert(const vector<int>& v)
 {
     wstring result;
     for(auto i : v) {
-        if(i == -1) {
-            // Восстанавливаем пробелы
-            result.push_back(L' ');
-        } else {
-            result.push_back(numAlpha[i]);
-        }
+        // Пробелы больше не восстанавливаем
+        result.push_back(numAlpha[i]);
     }
     return result;
 }
