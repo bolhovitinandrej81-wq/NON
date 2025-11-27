@@ -1,25 +1,28 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -O2
+CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic
 
-# Имя исполняемого файла
-TARGET = test_tableroutecipher
+# Цели
+MAIN_TARGET = cipher
+TEST_TARGET = test_TableRouteCipher
 
-# Исходный файл
-SOURCE = TableRouteCipher.cpp
+# Сборка основной программы
+$(MAIN_TARGET): main.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $<
 
-# Правило для сборки исполняемого файла
-$(TARGET): $(SOURCE)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SOURCE)
+# Сборка тестов
+$(TEST_TARGET): test_TableRouteCipher.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $<
 
-# Правило для запуска тестов (предполагает, что исполняемый файл уже собран)
-test: $(TARGET)
-	./$(TARGET)
+# Запуск основной программы
+run: $(MAIN_TARGET)
+	./$(MAIN_TARGET)
 
-# Правило для очистки (удаления исполняемого файла)
+# Запуск тестов
+test: $(TEST_TARGET)
+	./$(TEST_TARGET)
+
+# Очистка
 clean:
-	rm -f $(TARGET)
+	rm -f $(MAIN_TARGET) $(TEST_TARGET)
 
-# Правило по умолчанию - сборка
-all: $(TARGET)
-
-.PHONY: test clean all
+.PHONY: run test clean
