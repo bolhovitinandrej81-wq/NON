@@ -88,7 +88,8 @@ SUITE(EncryptTest) {
     }
     
     TEST_FIXTURE(Key3Fixture, StringWithNumbers) {
-        CHECK_THROW(p->encrypt("ALGORITHM2025"), cipher_error);
+        // ИЗМЕНЕНО: 2025 → 2026 для соответствия таблице 5.4
+        CHECK_THROW(p->encrypt("ALGORITHM2026"), cipher_error);
     }
     
     TEST_FIXTURE(Key3Fixture, EmptyString) {
