@@ -1,35 +1,52 @@
-#include <UnitTest++/UnitTest++.h>
 #include "TableRouteCipher.h"
+#include <UnitTest++/UnitTest++.h>
 #include <string>
+#include <iostream>
 
 using namespace std;
 
 // ========= ТЕСТЫ КОНСТРУКТОРА =========
 SUITE(ConstructorTest) {
-    // Позитивные тесты
+    // Позитивные тесты - заменим CHECK_NO_THROW
     TEST(ValidKey) {
-        CHECK_NO_THROW(TableRouteCipher cipher(3));
+        // Вместо CHECK_NO_THROW используем try-catch
+        try {
+            TableRouteCipher cipher(3);
+            CHECK(true); // Если не было исключения, тест пройден
+        } catch (const cipher_error&) {
+            CHECK(false); // Если было исключение, тест не пройден
+        }
     }
     
     TEST(KeyGreaterThanTextLength) {
-        CHECK_NO_THROW(TableRouteCipher cipher(10));
+        try {
+            TableRouteCipher cipher(10);
+            CHECK(true);
+        } catch (const cipher_error&) {
+            CHECK(false);
+        }
     }
     
     TEST(KeyEqualsOne) {
-        CHECK_NO_THROW(TableRouteCipher cipher(1));
+        try {
+            TableRouteCipher cipher(1);
+            CHECK(true);
+        } catch (const cipher_error&) {
+            CHECK(false);
+        }
     }
     
-    // Негативные тесты
+    // Негативные тесты - CHECK_THROW должен работать
     TEST(NegativeKey) {
-        CHECK_THROW(TableRouteCipher cipher(-5), cipher_error);
+        CHECK_THROW(TableRouteCipher(-5), cipher_error);
     }
     
     TEST(ZeroKey) {
-        CHECK_THROW(TableRouteCipher cipher(0), cipher_error);
+        CHECK_THROW(TableRouteCipher(0), cipher_error);
     }
     
     TEST(KeyLessThanOne) {
-        CHECK_THROW(TableRouteCipher cipher(-10), cipher_error);
+        CHECK_THROW(TableRouteCipher(-10), cipher_error);
     }
 }
 
@@ -171,7 +188,7 @@ SUITE(AdditionalTests) {
 }
 
 // ========= ГЛАВНАЯ ФУНКЦИЯ =========
-int main(int argc, char **argv) {
+int main() {
     cout << "Запуск модульных тестов TableRouteCipher..." << endl;
     cout << "============================================" << endl;
     

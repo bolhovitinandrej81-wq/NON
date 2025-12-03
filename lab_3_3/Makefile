@@ -1,28 +1,67 @@
+# Makefile для TableRouteCipher проекта
+
+# Компилятор и флаги
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic
+LDFLAGS = -lUnitTest++
 
-# Цели
-MAIN_TARGET = cipher
-TEST_TARGET = test_TableRouteCipher
+# Имена файлов
+MAIN_SOURCE = TableRouteCipher.cpp
+TEST_SOURCE = main.cpp
+HEADER = TableRouteCipher.h
 
-# Сборка основной программы
-$(MAIN_TARGET): main.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $<
+# Целевой файл
+TARGET = TableRouteCipherTest
 
-# Сборка тестов
-$(TEST_TARGET): test_TableRouteCipher.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $<
+# Основные цели
+.PHONY: all build test clean run help
 
-# Запуск основной программы
-run: $(MAIN_TARGET)
-	./$(MAIN_TARGET)
+# Основная цель
+all: build test
+
+# Сборка
+build: $(TARGET)
+
+$(TARGET): $(MAIN_SOURCE) $(TEST_SOURCE) $(HEADER)
+	@echo "🔧 Компиляция проекта..."
+	$(CXX) $(CXXFLAGS) $(MAIN_SOURCE) $(TEST_SOURCE) -o $(TARGET) $(LDFLAGS)
+	@echo "✅ Сборка завершена: $(TARGET)"
 
 # Запуск тестов
-test: $(TEST_TARGET)
-	./$(TEST_TARGET)
+test: build
+	@echo ""
+	@echo "🧪 ЗАПУСК ТЕСТОВ"
+	@echo "════════════════════════════════════════"
+	@./$(TARGET)
+	@echo "════════════════════════════════════════"
+
+# Псевдоним
+run: test
 
 # Очистка
 clean:
-	rm -f $(MAIN_TARGET) $(TEST_TARGET)
+	@echo "🧹 Очистка..."
+	@rm -f $(TARGET) *.o
+	@echo "✅ Очистка завершена"
 
-.PHONY: run test clean
+# Простая проверка
+check:
+	@echo "📝 Проверка файлов..."
+	@ls -la $(MAIN_SOURCE) $(TEST_SOURCE) $(HEADER) 2>/dev/null || echo "❌ Некоторые файлы отсутствуют"
+	@echo ""
+	@echo "📝 Проверка компиляции..."
+	@$(CXX) $(CXXFLAGS) -c $(MAIN_SOURCE) -o /tmp/test.o 2>&1 && echo "✅ TableRouteCipher.cpp компилируется" || echo "❌ Ошибка в TableRouteCipher.cpp"
+
+# Справка
+help:
+	@echo "📖 ДОСТУПНЫЕ КОМАНДЫ:"
+	@echo "  make all     - собрать и запустить тесты"
+	@echo "  make build   - только сборка"
+	@echo "  make test    - сборка и запуск тестов"
+	@echo "  make run     - то же что и test"
+	@echo "  make clean   - очистка"
+	@echo "  make check   - проверить файлы и компиляцию"
+	@echo "  make help    - эта справка"
+
+# Правило по умолчанию
+.DEFAULT_GOAL := help
