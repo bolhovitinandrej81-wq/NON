@@ -1,167 +1,184 @@
-#include <iostream>
+#include <UnitTest++/UnitTest++.h>
+#include "TableRouteCipher.h"
 #include <string>
-#include <cctype>
-#include <vector>
-#include <stdexcept>
 
 using namespace std;
 
-// ========= ВСТРОЕННЫЙ КЛАСС (тот же, что и в тестах) =========
+// ========= ТЕСТЫ КОНСТРУКТОРА =========
+SUITE(ConstructorTest) {
+    // Позитивные тесты
+    TEST(ValidKey) {
+        CHECK_NO_THROW(TableRouteCipher cipher(3));
+    }
+    
+    TEST(KeyGreaterThanTextLength) {
+        CHECK_NO_THROW(TableRouteCipher cipher(10));
+    }
+    
+    TEST(KeyEqualsOne) {
+        CHECK_NO_THROW(TableRouteCipher cipher(1));
+    }
+    
+    // Негативные тесты
+    TEST(NegativeKey) {
+        CHECK_THROW(TableRouteCipher cipher(-5), cipher_error);
+    }
+    
+    TEST(ZeroKey) {
+        CHECK_THROW(TableRouteCipher cipher(0), cipher_error);
+    }
+    
+    TEST(KeyLessThanOne) {
+        CHECK_THROW(TableRouteCipher cipher(-10), cipher_error);
+    }
+}
 
-class cipher_error : public std::exception {
-private:
-    string message;
-public:
-    explicit cipher_error(const string& msg) : message(msg) {}
-    const char* what() const noexcept override {
-        return message.c_str();
+// ========= ФИКСТУРА ДЛЯ КЛЮЧА 3 =========
+struct Key3Fixture {
+    TableRouteCipher* p;
+    Key3Fixture() {
+        p = new TableRouteCipher(3);
+    }
+    ~Key3Fixture() {
+        delete p;
     }
 };
 
-class TableRouteCipher {
-private:
-    int key;
-public:
-    TableRouteCipher() = delete;
-    TableRouteCipher(int skey) {
-        if (skey < 0) {
-            throw cipher_error("Ключ должен быть положительным");
-        } else if (skey == 0) {
-            throw cipher_error("Ключ не может быть нулём");
-        }
-        key = skey;
+// ========= ФИКСТУРА ДЛЯ КЛЮЧА 5 =========
+struct Key5Fixture {
+    TableRouteCipher* p;
+    Key5Fixture() {
+        p = new TableRouteCipher(5);
     }
-
-    string encrypt(string text) {
-        string clean_text;
-        for (char c : text) {
-            if (c != ' ') clean_text += c;
-        }
-        if (clean_text.empty())
-            throw cipher_error("Отсутствует открытый текст");
-        for (char c : clean_text) {
-            if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
-                throw cipher_error("Некорректные символы в строке");
-        }
-        if (static_cast<size_t>(key) > clean_text.size()) {
-            throw cipher_error("Некорректный размер ключа");
-        }
-
-        int length = clean_text.length();
-        int rows = (length + key - 1) / key;
-        vector<vector<char>> table(rows, vector<char>(key, ' '));
-        int index = 0;
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < key; j++) {
-                if (index < length) {
-                    table[i][j] = clean_text[index++];
-                }
-            }
-        }
-        string result;
-        for (int j = 0; j < key; j++) {
-            for (int i = 0; i < rows; i++) {
-                if (table[i][j] != ' ') {
-                    result += table[i][j];
-                }
-            }
-        }
-        return result;
-    }
-
-    string decrypt(string text) {
-        string clean_text;
-        for (char c : text) {
-            if (c != ' ') clean_text += c;
-        }
-        if (clean_text.empty())
-            throw cipher_error("Отсутствует открытый текст");
-        for (char c : clean_text) {
-            if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')))
-                throw cipher_error("Некорректные символы в строке");
-        }
-        if (static_cast<size_t>(key) > clean_text.size()) {
-            throw cipher_error("Некорректный размер ключа");
-        }
-
-        int length = clean_text.length();
-        int rows = (length + key - 1) / key;
-        vector<vector<char>> table(rows, vector<char>(key, ' '));
-        vector<int> col_counts(key, rows);
-        int total_cells = rows * key;
-        int empty_cells = total_cells - length;
-        for (int j = key - 1; j >= key - empty_cells; j--) {
-            col_counts[j] = rows - 1;
-        }
-
-        int text_index = 0;
-        for (int j = 0; j < key; j++) {
-            for (int i = 0; i < col_counts[j]; i++) {
-                if (text_index < length) {
-                    table[i][j] = clean_text[text_index++];
-                }
-            }
-        }
-
-        string result;
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < key; j++) {
-                if (table[i][j] != ' ') {
-                    result += table[i][j];
-                }
-            }
-        }
-        return result;
+    ~Key5Fixture() {
+        delete p;
     }
 };
 
-// ========= ОСНОВНАЯ ПРОГРАММА =========
-
-int main() {
-    string text;
-    int key;
-    unsigned vibor;
-    
-    cout << "--- Шифратор табличным маршрутным шифром ---\n";
-    cout << "Поддерживаются только английские буквы и пробелы\n";
-    cout << "---\n";
-    
-    cout << "Введите текст: ";
-    getline(cin, text);
-    
-    cout << "Введите кол-во столбцов: ";
-    cin >> key;
-    
-    try {
-        TableRouteCipher shifr(key);
-        cout << "Ключ загружен\n";
-        
-        do {
-            cout << "Шифратор готов. Выберите операцию (Выход-0, Шифровка-1, Расшифровка-2): ";
-            cin >> vibor;
-            
-            if (vibor > 2) {
-                cout << "Неверная операция!\n";
-            } else if (vibor > 0) {
-                try {
-                    if (vibor == 1) {
-                        text = shifr.encrypt(text);
-                        cout << "Зашифрованный текст: " << text << endl;
-                    } else {
-                        text = shifr.decrypt(text);
-                        cout << "Расшифрованный текст: " << text << endl;
-                    }
-                } catch (const cipher_error& e) {
-                    cout << "Ошибка при выполнении операции: " << e.what() << endl;
-                    break;
-                }
-            }
-        } while (vibor != 0);
-        
-    } catch (const cipher_error& e) {
-        cout << "Ошибка при создании шифратора: " << e.what() << endl;
-        return 1;
+// ========= ТЕСТЫ МЕТОДА ENCRYPT =========
+SUITE(EncryptTest) {
+    // Тесты с фикстурой Key3Fixture (ключ 3)
+    TEST_FIXTURE(Key3Fixture, UpCaseString) {
+        CHECK_EQUAL("PGMNRRMGOAI", p->encrypt("PROGRAMMING"));
     }
     
-    return 0;
+    TEST_FIXTURE(Key3Fixture, LowCaseString) {
+        CHECK_EQUAL("pgmnrrmgoai", p->encrypt("programming"));
+    }
+    
+    TEST_FIXTURE(Key3Fixture, StringWithWhitespace) {
+        CHECK_EQUAL("PGMNRRMGOAI", p->encrypt("PRO GRAMMING"));
+    }
+    
+    TEST_FIXTURE(Key3Fixture, StringWithNumbers) {
+        CHECK_THROW(p->encrypt("ALGORITHM2025"), cipher_error);
+    }
+    
+    TEST_FIXTURE(Key3Fixture, EmptyString) {
+        CHECK_THROW(p->encrypt(""), cipher_error);
+    }
+    
+    TEST_FIXTURE(Key3Fixture, NoAlphaString) {
+        CHECK_THROW(p->encrypt("123 !@#"), cipher_error);
+    }
+    
+    // Тест с другим ключом (без фикстуры)
+    TEST(TextShorterThanKey) {
+        TableRouteCipher cipher(6);
+        CHECK_THROW(cipher.encrypt("HELLO"), cipher_error);
+    }
+    
+    // Тест с фикстурой Key5Fixture
+    TEST_FIXTURE(Key5Fixture, TextEqualsKeyLength) {
+        CHECK_EQUAL("HELLO", p->encrypt("HELLO"));
+    }
+    
+    // Отдельный тест с ключом 3 (без фикстуры для разнообразия)
+    TEST(TextLengthMultipleOfKey) {
+        TableRouteCipher cipher(3);
+        CHECK_EQUAL("ADGBEHCFI", cipher.encrypt("ABCDEFGHI"));
+    }
+}
+
+// ========= ТЕСТЫ МЕТОДА DECRYPT =========
+SUITE(DecryptTest) {
+    // Тесты с фикстурой Key3Fixture
+    TEST_FIXTURE(Key3Fixture, ValidText) {
+        CHECK_EQUAL("PROGRAMMING", p->decrypt("PGMNRRMGOAI"));
+    }
+    
+    TEST_FIXTURE(Key3Fixture, LowCaseString) {
+        CHECK_EQUAL("programming", p->decrypt("pgmnrrmgoai"));
+    }
+    
+    TEST_FIXTURE(Key3Fixture, StringWithWhitespace) {
+        CHECK_EQUAL("PROGRAMMING", p->decrypt("P G M N R R M G O A I"));
+    }
+    
+    TEST_FIXTURE(Key3Fixture, StringWithDigits) {
+        CHECK_THROW(p->decrypt("CODE2026XYZ"), cipher_error);
+    }
+    
+    TEST_FIXTURE(Key3Fixture, StringWithPunctuation) {
+        CHECK_THROW(p->decrypt("HELLO.WORLD!"), cipher_error);
+    }
+    
+    TEST_FIXTURE(Key3Fixture, EmptyString) {
+        CHECK_THROW(p->decrypt(""), cipher_error);
+    }
+    
+    TEST_FIXTURE(Key3Fixture, TextLengthMultipleOfKey) {
+        CHECK_EQUAL("ABCDEFGHI", p->decrypt("ADGBEHCFI"));
+    }
+    
+    // Тесты с другими ключами (без фикстуры)
+    TEST(IncompleteTable) {
+        TableRouteCipher cipher(6);
+        CHECK_THROW(cipher.decrypt("HELLO"), cipher_error);
+    }
+    
+    TEST(DecryptWithDifferentKey) {
+        TableRouteCipher cipher(4);
+        CHECK_THROW(cipher.decrypt("CODE2026XYZ"), cipher_error);
+    }
+}
+
+// ========= ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ =========
+SUITE(AdditionalTests) {
+    TEST(KeyEqualsOne_EncryptDecrypt) {
+        TableRouteCipher cipher(1);
+        string encrypted = cipher.encrypt("HELLO");
+        string decrypted = cipher.decrypt(encrypted);
+        CHECK_EQUAL("HELLO", encrypted);
+        CHECK_EQUAL("HELLO", decrypted);
+    }
+    
+    TEST(EncryptDecryptCycle) {
+        TableRouteCipher cipher(3);
+        string original = "PROGRAMMING";
+        string encrypted = cipher.encrypt(original);
+        string decrypted = cipher.decrypt(encrypted);
+        CHECK_EQUAL(original, decrypted);
+    }
+    
+    TEST(MaxKey) {
+        TableRouteCipher cipher(8);
+        string original = "ABCDEFGH";
+        string encrypted = cipher.encrypt(original);
+        string decrypted = cipher.decrypt(encrypted);
+        CHECK_EQUAL(original, decrypted);
+    }
+}
+
+// ========= ГЛАВНАЯ ФУНКЦИЯ =========
+int main(int argc, char **argv) {
+    cout << "Запуск модульных тестов TableRouteCipher..." << endl;
+    cout << "============================================" << endl;
+    
+    int result = UnitTest::RunAllTests();
+    
+    cout << "============================================" << endl;
+    cout << "Тестирование завершено." << endl;
+    
+    return result;
 }
