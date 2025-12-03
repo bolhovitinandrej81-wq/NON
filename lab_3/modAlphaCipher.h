@@ -3,8 +3,8 @@
 #include <string>
 #include <map>
 #include <stdexcept>
-#include <codecvt>
 #include <locale>
+#include <codecvt>
 
 class cipher_error: public std::invalid_argument {
 public:
@@ -23,29 +23,22 @@ private:
     // Вспомогательные методы
     std::vector<int> convert(const std::wstring& s);
     std::wstring convert(const std::vector<int>& v);
-    std::wstring to_upper_rus(const std::wstring& s);
-    bool isValidKey(const std::wstring& s);
-    bool isValidText(const std::wstring& s, bool allowLowercase = false);
-    
-    // Конвертеры
-    static std::wstring s2ws(const std::string& str) {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-        return converter.from_bytes(str);
-    }
-    
-    static std::string ws2s(const std::wstring& wstr) {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-        return converter.to_bytes(wstr);
-    }
     
 public:
     modAlphaCipher() = delete;
-    modAlphaCipher(const std::wstring& skey);
-    modAlphaCipher(const std::string& skey);
+    explicit modAlphaCipher(const std::string& skey);
     
     // Основные методы
-    std::wstring encrypt(const std::wstring& open_text);
     std::string encrypt(const std::string& open_text);
-    std::wstring decrypt(const std::wstring& cipher_text);
     std::string decrypt(const std::string& cipher_text);
+    
+private:
+    // Вспомогательные функции
+    std::wstring to_upper_rus(const std::wstring& s);
+    bool isValidKey(const std::string& s);
+    bool isValidText(const std::string& s, bool allowLowercase = false);
+    std::wstring s2ws(const std::string& str);
+    std::string ws2s(const std::wstring& wstr);
+    std::string processTextForEncrypt(const std::string& text);
+    std::string processTextForDecrypt(const std::string& text);
 };

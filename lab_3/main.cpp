@@ -1,54 +1,75 @@
 #include <UnitTest++/UnitTest++.h>
 #include "modAlphaCipher.h"
+#include <clocale>
 #include <locale>
 
 using namespace std;
 
-// Тесты конструктора (Таблица 1)
+// Установка локали
+void setup_locale() {
+    if (!std::setlocale(LC_ALL, "C.UTF-8")) {
+        std::setlocale(LC_ALL, "");
+    }
+}
+
+// Тесты конструктора (Таблица 1 - 8 тестов)
 SUITE(ConstructorTests) {
     // Тест 1.1: Верный ключ
     TEST(ValidKey) {
-        CHECK_NOTHROW(modAlphaCipher("МЫШКА"));
+        bool exceptionThrown = false;
+        try {
+            modAlphaCipher cipher("МЫШКА");
+        } catch (const cipher_error& e) {
+            exceptionThrown = true;
+        }
+        CHECK(!exceptionThrown);
     }
     
     // Тест 1.2: Ключ с буквой Ё
     TEST(KeyWithYo) {
-        CHECK_NOTHROW(modAlphaCipher("ПРОГРАММЁР"));
+        bool exceptionThrown = false;
+        try {
+            modAlphaCipher cipher("ПРОГРАММЁР");
+        } catch (const cipher_error& e) {
+            exceptionThrown = true;
+        }
+        CHECK(!exceptionThrown);
     }
     
     // Тест 1.3: Пустой ключ
     TEST(EmptyKey) {
-        CHECK_THROW(modAlphaCipher(""), cipher_error);
+        CHECK_THROW(modAlphaCipher cipher(""), cipher_error);
     }
     
     // Тест 1.4: Ключ с пробелами
     TEST(KeyWithSpaces) {
-        CHECK_THROW(modAlphaCipher("ВИРТУАЛЬНАЯ МАШИНА"), cipher_error);
+        CHECK_THROW(modAlphaCipher cipher("ВИРТУАЛЬНАЯ МАШИНА"), cipher_error);
     }
     
     // Тест 1.5: Ключ с цифрами
     TEST(KeyWithDigits) {
-        CHECK_THROW(modAlphaCipher("КОД404"), cipher_error);
+        CHECK_THROW(modAlphaCipher cipher("КОД404"), cipher_error);
     }
     
     // Тест 1.6: Ключ с латинскими буквами
     TEST(KeyWithLatin) {
-        CHECK_THROW(modAlphaCipher("MOUSE"), cipher_error);
+        CHECK_THROW(modAlphaCipher cipher("MOUSE"), cipher_error);
     }
     
     // Тест 1.7: Ключ со спецсимволами
     TEST(KeyWithSpecialChars) {
-        CHECK_THROW(modAlphaCipher("КЛАВИАТУРА!"), cipher_error);
+        CHECK_THROW(modAlphaCipher cipher("КЛАВИАТУРА!"), cipher_error);
     }
     
     // Тест 1.8: Ключ в нижнем регистре
     TEST(LowercaseKey) {
-        CHECK_NOTHROW(modAlphaCipher("монитор"));
-    }
-    
-    // Дополнительный тест: слабый ключ
-    TEST(WeakKey) {
-        CHECK_THROW(modAlphaCipher("ААА"), cipher_error);
+        bool exceptionThrown = false;
+        try {
+            modAlphaCipher cipher("монитор");
+        } catch (const cipher_error& e) {
+            exceptionThrown = true;
+        }
+        CHECK(!exceptionThrown);
     }
 }
 
@@ -65,7 +86,7 @@ struct KeyMyshkaFixture {
     }
 };
 
-// Тесты метода encrypt (Таблица 2)
+// Тесты метода encrypt (Таблица 2 - 9 тестов)
 SUITE(EncryptTests) {
     // Тест 2.1: Текст без пробелов
     TEST_FIXTURE(KeyMyshkaFixture, TextWithoutSpaces) {
@@ -96,11 +117,9 @@ SUITE(EncryptTests) {
         CHECK_THROW(cipher->encrypt(""), cipher_error);
     }
     
-    // Тест 2.6: Текст с цифрами (ВЕРСИЯ2026 вместо 2024)
+    // Тест 2.6: Текст с цифрами (ВЕРСИЯ2026 - должен быть ИСКЛЮЧЕНИЕ)
     TEST_FIXTURE(KeyMyshkaFixture, TextWithDigits) {
-        // Согласно скриншоту, текст "ВЕРСИЯ2026" должен пройти шифрование
-        string encrypted = cipher->encrypt("ВЕРСИЯ2026");
-        CHECK(!encrypted.empty()); // Цифры игнорируются, текст шифруется
+        CHECK_THROW(cipher->encrypt("ВЕРСИЯ2026"), cipher_error);
     }
     
     // Тест 2.7: Текст с латинскими буквами
@@ -108,10 +127,9 @@ SUITE(EncryptTests) {
         CHECK_THROW(cipher->encrypt("COMPUTER"), cipher_error);
     }
     
-    // Тест 2.8: Текст со спецсимволами
+    // Тест 2.8: Текст со спецсимволами (должен быть ИСКЛЮЧЕНИЕ)
     TEST_FIXTURE(KeyMyshkaFixture, TextWithSpecialChars) {
-        string encrypted = cipher->encrypt("ПРИВЕТ.МИР!");
-        CHECK(!encrypted.empty()); // Спецсимволы игнорируются
+        CHECK_THROW(cipher->encrypt("ПРИВЕТ.МИР!"), cipher_error);
     }
     
     // Тест 2.9: Длинный текст (другой ключ)
@@ -120,34 +138,9 @@ SUITE(EncryptTests) {
         string encrypted = cipher2.encrypt("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ");
         CHECK(!encrypted.empty());
     }
-    
-    // Дополнительный тест: текст без русских букв
-    TEST_FIXTURE(KeyMyshkaFixture, NoRussianText) {
-        CHECK_THROW(cipher->encrypt("12345"), cipher_error);
-    }
-    
-    // Дополнительный тест: максимальный ключ
-    TEST(MaxShiftKey) {
-        modAlphaCipher cipher3("Я");
-        string encrypted = cipher3.encrypt("ХАМОН");
-        CHECK(!encrypted.empty());
-    }
 }
 
-// Фикстура для тестов с ключом "С" (как в примере)
-struct KeyCFixture {
-    modAlphaCipher* cipher;
-    
-    KeyCFixture() {
-        cipher = new modAlphaCipher("С");
-    }
-    
-    ~KeyCFixture() {
-        delete cipher;
-    }
-};
-
-// Тесты метода decrypt (Таблица 3)
+// Тесты метода decrypt (Таблица 3 - 9 тестов)
 SUITE(DecryptTests) {
     // Тест 3.1: Корректный зашифрованный текст
     TEST_FIXTURE(KeyMyshkaFixture, CorrectCipherText) {
@@ -162,7 +155,6 @@ SUITE(DecryptTests) {
         string original = "НОВЫЙ КОМПЬЮТЕР";
         string encrypted = cipher->encrypt(original);
         string decrypted = cipher->decrypt(encrypted);
-        // Пробелы удаляются при шифровании
         CHECK_EQUAL("НОВЫЙКОМПЬЮТЕР", decrypted);
     }
     
@@ -206,28 +198,11 @@ SUITE(DecryptTests) {
         string decrypted = cipher->decrypt(encrypted);
         CHECK_EQUAL(original, decrypted);
     }
-    
-    // Тест с ключом "С" (как в примере)
-    TEST_FIXTURE(KeyCFixture, DecryptWithKeyC) {
-        string original = "ХАМОН";
-        string encrypted = cipher->encrypt(original);
-        string decrypted = cipher->decrypt(encrypted);
-        CHECK_EQUAL(original, decrypted);
-    }
-    
-    // Тест на максимальный ключ
-    TEST(MaxKeyDecrypt) {
-        modAlphaCipher cipher3("Я");
-        string original = "АЛЫЙОВЕРДРАЙВ";
-        string encrypted = cipher3.encrypt(original);
-        string decrypted = cipher3.decrypt(encrypted);
-        CHECK_EQUAL(original, decrypted);
-    }
 }
 
 int main(int argc, char **argv) {
-    // Устанавливаем локаль для корректной работы с русскими символами
-    std::locale::global(std::locale("ru_RU.UTF-8"));
+    // Устанавливаем локаль
+    setup_locale();
     
     // Запуск всех тестов
     return UnitTest::RunAllTests();
